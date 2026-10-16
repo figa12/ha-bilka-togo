@@ -5,11 +5,15 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Callable
 from dataclasses import dataclass, field
+import hashlib
 import logging
+from pathlib import Path
 from typing import Any
 
 import aiohttp
 
+from homeassistant.components.frontend import add_extra_js_url
+from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_EMAIL, CONF_PASSWORD, Platform
 from homeassistant.core import HomeAssistant, callback
@@ -27,6 +31,8 @@ from .transfer import Memory
 _LOGGER = logging.getLogger(__name__)
 
 PLATFORMS: list[Platform] = [Platform.TODO]
+CARDS = Path(__file__).parent / "frontend"
+CARDS_URL = f"/{DOMAIN}/frontend"
 STORAGE_VERSION = 1
 SAVE_DELAY = 1
 
@@ -74,9 +80,22 @@ CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """Register the actions the transfer card uses."""
+    """Register the actions, and serve the cards so no dashboard resource is needed."""
     async_setup_services(hass)
+    await hass.http.async_register_static_paths(
+        [StaticPathConfig(CARDS_URL, str(CARDS), cache_headers=False)]
+    )
+    for card in await hass.async_add_executor_job(_card_versions):
+        add_extra_js_url(hass, card)
     return True
+
+
+def _card_versions() -> list[str]:
+    """Each card's URL with a hash of its content, so browsers fetch it again when it changes."""
+    return [
+        f"{CARDS_URL}/{card.name}?v={hashlib.sha256(card.read_bytes()).hexdigest()[:10]}"
+        for card in sorted(CARDS.glob("*.js"))
+    ]
 
 
 def create_client(hass: HomeAssistant, email: str, password: str) -> BilkaClient:

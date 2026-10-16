@@ -11,7 +11,18 @@ basket. Booking a pickup slot and paying stay in Bilka's own site.
 > **Status: early.** You can sign in; the shopping list exists as a to-do list
 > (`todo.bilka_to_go_shopping_list`) that keeps the household's rules; and the transfer exists
 > as actions (`bilka_togo.get_transfer`, `search`, `move`, `forget`, `empty_basket`,
-> `known_items`). The two cards that use them are not built yet.
+> `known_items`). The wall display card (`custom:bilka-shopping-list-card`) exists; the
+> phone transfer card does not yet.
+
+## Cards
+
+The integration serves its cards itself; no dashboard resource needs adding.
+
+```yaml
+type: custom:bilka-shopping-list-card
+entity: todo.bilka_to_go_shopping_list
+autofocus_hash: "#indkob"   # open the keyboard when this Bubble Card pop-up opens
+```
 
 ## Install
 
@@ -35,7 +46,8 @@ password are entered in Home Assistant and are never stored in this repository.
 
 ```bash
 python3 -m venv .venv
-.venv/bin/pip install "pytest-homeassistant-custom-component==0.13.365"
+.venv/bin/pip install "pytest-homeassistant-custom-component==0.13.365" \
+    "home-assistant-frontend==20260826.7"
 .venv/bin/python -m pytest
 ```
 

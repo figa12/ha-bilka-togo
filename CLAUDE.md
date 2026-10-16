@@ -33,6 +33,15 @@ on the household's HA instance. The HA configuration it serves lives in a separa
 ## Tests
 
 `.venv/bin/python -m pytest`. The venv has `pytest-homeassistant-custom-component==0.13.365`,
-which pins HA 2026.9.2 (the live version); bump it together with HA. Client tests use `tests/fake_session.py`, not aioresponses, which does
+which pins HA 2026.9.2 (the live version), and `home-assistant-frontend==20260826.7`, the
+frontend that version needs; bump both together with HA. Client tests use `tests/fake_session.py`, not aioresponses, which does
 not work with aiohttp 3.14. Never run tests or scripts that change the real basket without
 asking: it is the household's live Bilka basket.
+
+## Cards
+
+Plain custom elements in `custom_components/bilka_togo/frontend/`, no build step. The
+integration serves that folder and adds each card as a frontend module with a content hash, so
+no dashboard resource is needed and browsers refetch a changed card. Check syntax with
+`node --check`. A card change is not finished until it has been rendered on the real dashboard
+at the real size (wall display 1920 × 1080): see `~/Projecs/ha-config/CLAUDE.md`.
