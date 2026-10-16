@@ -8,10 +8,10 @@ decides to order, someone works through the list on a phone. Each item is turned
 specific Bilka product, chosen with this week's offers in view, and moved into the Bilka
 basket. Booking a pickup slot and paying stay in Bilka's own site.
 
-> **Status: early.** You can sign in, and the shopping list exists as a to-do list
-> (`todo.bilka_to_go_shopping_list`) that keeps the household's rules: no item twice, a
-> separate amount, and ticking off means removing. Transfers and the two cards are not built
-> yet.
+> **Status: early.** You can sign in; the shopping list exists as a to-do list
+> (`todo.bilka_to_go_shopping_list`) that keeps the household's rules; and the transfer exists
+> as actions (`bilka_togo.get_transfer`, `search`, `move`, `forget`, `empty_basket`,
+> `known_items`). The two cards that use them are not built yet.
 
 ## Install
 

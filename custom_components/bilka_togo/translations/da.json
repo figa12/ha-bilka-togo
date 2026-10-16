@@ -34,5 +34,83 @@
         "name": "Indkøbsliste"
       }
     }
+  },
+  "services": {
+    "get_transfer": {
+      "name": "Hent overførsel",
+      "description": "Kurvens status og alle varer på indkøbslisten med deres tidligere valgte produkter i præferenceorden."
+    },
+    "search": {
+      "name": "Søg i Bilka",
+      "description": "Søg i afhentningsbutikkens sortiment i Bilkas egen rækkefølge.",
+      "fields": {
+        "query": {
+          "name": "Søgning",
+          "description": "Hvad der skal søges efter."
+        },
+        "offers_only": {
+          "name": "Kun tilbud",
+          "description": "Kun varer på tilbud i butikken."
+        },
+        "organic_only": {
+          "name": "Kun øko",
+          "description": "Kun økologiske varer."
+        }
+      }
+    },
+    "move": {
+      "name": "Flyt vare",
+      "description": "Læg et produkt i Bilka-kurven for en vare, og tag varen af indkøbslisten.",
+      "fields": {
+        "item": {
+          "name": "Vare",
+          "description": "Varens id på indkøbslisten."
+        },
+        "product_id": {
+          "name": "Produkt",
+          "description": "Bilkas produkt-id."
+        },
+        "count": {
+          "name": "Antal",
+          "description": "Hvor mange der lægges oven i det, kurven har."
+        }
+      }
+    },
+    "forget": {
+      "name": "Glem produkt",
+      "description": "Fjern et produkt fra en vares tidligere valgte produkter.",
+      "fields": {
+        "item": {
+          "name": "Vare",
+          "description": "Varens navn."
+        },
+        "product_id": {
+          "name": "Produkt",
+          "description": "Bilkas produkt-id."
+        }
+      }
+    },
+    "empty_basket": {
+      "name": "Tøm kurv",
+      "description": "Fjern alle produkter fra Bilka-kurven. Pakkevalget bliver."
+    },
+    "known_items": {
+      "name": "Kendte varer",
+      "description": "Varenavne, der er overført før, de hyppigste først."
+    }
+  },
+  "exceptions": {
+    "not_loaded": {
+      "message": "Bilka To Go er ikke sat op."
+    },
+    "item_not_on_list": {
+      "message": "Den vare er ikke længere på indkøbslisten."
+    },
+    "auth_failed": {
+      "message": "Bilka afviste login. Log ind igen under Indstillinger → Enheder og tjenester."
+    },
+    "bilka_unreachable": {
+      "message": "Kunne ikke få forbindelse til Bilka To Go. Prøv igen om lidt."
+    }
   }
 }

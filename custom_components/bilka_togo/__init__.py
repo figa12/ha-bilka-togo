@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import asyncio
+from collections.abc import Callable
 from dataclasses import dataclass, field
 import logging
 from typing import Any
@@ -13,10 +15,14 @@ from homeassistant.const import CONF_EMAIL, CONF_PASSWORD, Platform
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
 from homeassistant.helpers.storage import Store
+from homeassistant.helpers.typing import ConfigType
+import homeassistant.helpers.config_validation as cv
 
 from .api import BilkaAuthError, BilkaClient, BilkaError
 from .const import DOMAIN
+from .services import async_setup_services
 from .shopping_list import ShoppingList
+from .transfer import Memory
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -34,21 +40,43 @@ class BilkaData:
     client: BilkaClient
     shopping_list: ShoppingList
     store: Store[dict[str, Any]]
-    # Known items and previously chosen products, written by transfers (not built yet).
-    # Kept as stored so nothing written later is lost by this version.
-    memory: dict[str, Any] = field(default_factory=dict)
+    # Known items and previously chosen products, as stored; `memory` edits it in place.
+    stored_memory: dict[str, Any] = field(default_factory=dict)
+    # One basket change at a time: adding reads the count before setting it.
+    basket_lock: asyncio.Lock = field(default_factory=asyncio.Lock)
+    _listeners: list[Callable[[], None]] = field(default_factory=list)
+
+    def __post_init__(self) -> None:
+        self.memory = Memory(self.stored_memory)
 
     @callback
-    def save(self) -> None:
-        """Save soon; changes made in quick succession are written once."""
+    def changed(self) -> None:
+        """Save soon and tell the shopping list entity, after any change."""
         self.store.async_delay_save(self._as_data, SAVE_DELAY)
+        for listener in list(self._listeners):
+            listener()
+
+    @callback
+    def async_add_listener(self, listener: Callable[[], None]) -> Callable[[], None]:
+        """Be told about changes; returns the function that stops it."""
+        self._listeners.append(listener)
+        return lambda: self._listeners.remove(listener)
 
     async def async_save_now(self) -> None:
         """Write at once, so a reload never reads the file before a pending save lands."""
         await self.store.async_save(self._as_data())
 
     def _as_data(self) -> dict[str, Any]:
-        return {"items": self.shopping_list.as_data(), "memory": self.memory}
+        return {"items": self.shopping_list.as_data(), "memory": self.stored_memory}
+
+
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
+
+
+async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+    """Register the actions the transfer card uses."""
+    async_setup_services(hass)
+    return True
 
 
 def create_client(hass: HomeAssistant, email: str, password: str) -> BilkaClient:
@@ -83,7 +111,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: BilkaConfigEntry) -> boo
         client=client,
         shopping_list=ShoppingList.from_data(stored.get("items", [])),
         store=store,
-        memory=stored.get("memory", {}),
+        stored_memory=stored.get("memory", {}),
     )
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True

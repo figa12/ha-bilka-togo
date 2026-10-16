@@ -34,5 +34,83 @@
         "name": "Shopping list"
       }
     }
+  },
+  "services": {
+    "get_transfer": {
+      "name": "Get transfer",
+      "description": "The basket summary, and every item on the shopping list with its previously chosen products in preference order."
+    },
+    "search": {
+      "name": "Search Bilka",
+      "description": "Search the pickup store's range, in Bilka's own order.",
+      "fields": {
+        "query": {
+          "name": "Query",
+          "description": "What to search for."
+        },
+        "offers_only": {
+          "name": "Offers only",
+          "description": "Only products on offer in the store."
+        },
+        "organic_only": {
+          "name": "Organic only",
+          "description": "Only organic products."
+        }
+      }
+    },
+    "move": {
+      "name": "Move item",
+      "description": "Put a product in the Bilka basket for an item, and take the item off the shopping list.",
+      "fields": {
+        "item": {
+          "name": "Item",
+          "description": "The item's id on the shopping list."
+        },
+        "product_id": {
+          "name": "Product",
+          "description": "The Bilka product id."
+        },
+        "count": {
+          "name": "Count",
+          "description": "How many to add on top of what the basket holds."
+        }
+      }
+    },
+    "forget": {
+      "name": "Forget product",
+      "description": "Take a product out of an item's previously chosen products.",
+      "fields": {
+        "item": {
+          "name": "Item",
+          "description": "The item's name."
+        },
+        "product_id": {
+          "name": "Product",
+          "description": "The Bilka product id."
+        }
+      }
+    },
+    "empty_basket": {
+      "name": "Empty basket",
+      "description": "Remove every product from the Bilka basket. The packing choice stays."
+    },
+    "known_items": {
+      "name": "Known items",
+      "description": "Item names that have been transferred before, the most frequent first."
+    }
+  },
+  "exceptions": {
+    "not_loaded": {
+      "message": "Bilka To Go is not set up."
+    },
+    "item_not_on_list": {
+      "message": "That item is no longer on the shopping list."
+    },
+    "auth_failed": {
+      "message": "Bilka refused the login. Sign in again under Settings → Devices & services."
+    },
+    "bilka_unreachable": {
+      "message": "Could not reach Bilka To Go. Try again in a moment."
+    }
   }
 }

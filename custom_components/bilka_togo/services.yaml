@@ -1,0 +1,49 @@
+get_transfer:
+search:
+  fields:
+    query:
+      required: true
+      example: mælk
+      selector:
+        text:
+    offers_only:
+      default: false
+      selector:
+        boolean:
+    organic_only:
+      default: false
+      selector:
+        boolean:
+move:
+  fields:
+    item:
+      required: true
+      selector:
+        text:
+    product_id:
+      required: true
+      example: "19683"
+      selector:
+        text:
+    count:
+      required: true
+      default: 1
+      selector:
+        number:
+          min: 1
+          max: 99
+          mode: box
+forget:
+  fields:
+    item:
+      required: true
+      example: mælk
+      selector:
+        text:
+    product_id:
+      required: true
+      example: "19683"
+      selector:
+        text:
+empty_basket:
+known_items:

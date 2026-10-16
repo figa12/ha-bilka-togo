@@ -52,6 +52,10 @@ class ShoppingList:
     def items(self) -> list[Item]:
         return list(self._items)
 
+    def get(self, uid: str) -> Item | None:
+        """The item with this uid, if it is still on the list."""
+        return next((item for item in self._items if item.uid == uid), None)
+
     def find(self, name: str) -> Item | None:
         """The item with this name, if it is on the list."""
         key = item_key(name)

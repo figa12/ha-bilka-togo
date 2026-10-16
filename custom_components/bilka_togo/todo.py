@@ -102,6 +102,9 @@ class ShoppingListEntity(TodoListEntity):
             raise ServiceValidationError(f"No item {err}") from err
         await self._changed()
 
+    async def async_added_to_hass(self) -> None:
+        """Follow changes made outside this entity, such as moves during a transfer."""
+        self.async_on_remove(self._data.async_add_listener(self.async_write_ha_state))
+
     async def _changed(self) -> None:
-        self._data.save()
-        self.async_write_ha_state()
+        self._data.changed()
