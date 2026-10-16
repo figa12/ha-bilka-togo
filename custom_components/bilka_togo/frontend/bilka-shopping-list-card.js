@@ -102,8 +102,9 @@ class BilkaShoppingListCard extends HTMLElement {
         }
         input:focus { outline: none; border-color: var(--bilka-primary); }
         input::placeholder { color: var(--secondary-text-color); }
-        #name { flex: 1 1 auto; }
-        #amount { flex: 0 0 170px; }
+        /* The name gets the room: on a narrow pop-up the amount shrinks first. */
+        #name { flex: 3 1 0; }
+        #amount { flex: 1 1 0; min-width: 110px; max-width: 170px; }
         button { font: inherit; cursor: pointer; border: none; -webkit-tap-highlight-color: transparent; }
         #add {
           flex: 0 0 auto; height: 64px; padding: 0 28px; border-radius: 16px;
