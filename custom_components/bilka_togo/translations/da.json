@@ -27,5 +27,12 @@
       "reauth_successful": "Logget ind igen.",
       "wrong_account": "Den adgangskode loggede ind på en anden Bilka-konto."
     }
+  },
+  "entity": {
+    "todo": {
+      "shopping_list": {
+        "name": "Indkøbsliste"
+      }
+    }
   }
 }

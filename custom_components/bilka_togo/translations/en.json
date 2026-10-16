@@ -27,5 +27,12 @@
       "reauth_successful": "Signed in again.",
       "wrong_account": "That password signed in to a different Bilka account."
     }
+  },
+  "entity": {
+    "todo": {
+      "shopping_list": {
+        "name": "Shopping list"
+      }
+    }
   }
 }

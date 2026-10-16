@@ -161,8 +161,8 @@ class BilkaClient:
     ) -> None:
         """Use a session of its own: the Bilka session lives in the cookie jar.
 
-        Without a store id, call account() before searching; it sets the store the account
-        picks up from.
+        Without a store id, the first search asks Bilka which store the account picks up
+        from.
         """
         self._session = session
         self._email = email
@@ -313,7 +313,8 @@ class BilkaClient:
 
     async def _algolia(self, params: dict[str, Any]) -> list[dict[str, Any]]:
         if not self.store_id:
-            raise BilkaError("No store: call account() first")
+            # Bilka may have been unreachable when Home Assistant started.
+            await self.account()
         query = "&".join(
             f"{key}={quote(str(value), safe='')}"
             for key, value in {

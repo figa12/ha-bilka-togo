@@ -8,9 +8,10 @@ decides to order, someone works through the list on a phone. Each item is turned
 specific Bilka product, chosen with this week's offers in view, and moved into the Bilka
 basket. Booking a pickup slot and paying stay in Bilka's own site.
 
-> **Status: early.** The Bilka client and the setup screen exist: you can add the
-> integration and sign in, and it learns the account's pickup store. The shopping list and
-> the cards are not built yet.
+> **Status: early.** You can sign in, and the shopping list exists as a to-do list
+> (`todo.bilka_to_go_shopping_list`) that keeps the household's rules: no item twice, a
+> separate amount, and ticking off means removing. Transfers and the two cards are not built
+> yet.
 
 ## Install
 

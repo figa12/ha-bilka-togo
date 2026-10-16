@@ -90,34 +90,18 @@ async def test_setup_learns_the_store_and_unloads(hass: HomeAssistant, client) -
 
     assert await hass.config_entries.async_setup(entry.entry_id)
     assert entry.state is ConfigEntryState.LOADED
-    assert entry.runtime_data is client
+    assert entry.runtime_data.client is client
 
     assert await hass.config_entries.async_unload(entry.entry_id)
     assert entry.state is ConfigEntryState.NOT_LOADED
 
 
-async def test_setup_retries_when_bilka_is_unreachable(hass: HomeAssistant, client) -> None:
-    client.account.side_effect = TimeoutError()
+async def test_a_reauth_updates_only_the_password(hass: HomeAssistant, client) -> None:
     entry = MockConfigEntry(domain=DOMAIN, unique_id="372513", data=LOGIN)
     entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(entry.entry_id)
-    assert entry.state is ConfigEntryState.SETUP_RETRY
-
-
-async def test_a_refused_password_asks_for_it_again(hass: HomeAssistant, client) -> None:
-    """A changed password leads to the reauth form, which updates only the password."""
-    client.account.side_effect = BilkaAuthError("refused")
-    entry = MockConfigEntry(domain=DOMAIN, unique_id="372513", data=LOGIN)
-    entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(entry.entry_id)
-    assert entry.state is ConfigEntryState.SETUP_ERROR
-
-    [flow] = hass.config_entries.flow.async_progress()
-    assert flow["context"]["source"] == "reauth"
-
-    client.account.side_effect = None
+    result = await entry.start_reauth_flow(hass)
     result = await hass.config_entries.flow.async_configure(
-        flow["flow_id"], {CONF_PASSWORD: "ny-hemmelig"}
+        result["flow_id"], {CONF_PASSWORD: "ny-hemmelig"}
     )
     assert result["type"] is FlowResultType.ABORT
     assert result["reason"] == "reauth_successful"

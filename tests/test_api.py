@@ -241,6 +241,11 @@ async def test_account_without_a_pickup_store_raises(session):
         await client.account()
 
 
-async def test_search_before_the_store_is_known_raises(session):
-    with pytest.raises(BilkaError, match="account"):
-        await BilkaClient(session, "a@b.dk", "secret").search("mælk")
+async def test_search_before_the_store_is_known_asks_bilka_first(session):
+    """Bilka may have been down at startup; the first search then learns the store."""
+    client = BilkaClient(session, "a@b.dk", "secret")
+    sign_in(session)
+    session.answer("GET", "/shop/v6/Cart$", {**cart(), "deliveryAddress": {"sid": "1652", "name": "Bilka Skalborg"}})
+    session.answer("POST", "algolia", search_answer())
+    await client.search("mælk")
+    assert client.store_id == "1652"
