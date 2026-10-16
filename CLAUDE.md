@@ -6,11 +6,13 @@ on the household's HA instance. The HA configuration it serves lives in a separa
 
 ## Read first
 
-- **`~/Projecs/ha-config/CONTEXT.md`** is the glossary: shopping list, item, amount, known item,
+- **`CONTEXT.md`** is the glossary: shopping list, item, amount, known item,
   previously chosen, preference order, basket, transfer, move, remove, offer, price cut,
   multibuy. Use those words in code, names and UI, and avoid the ones it lists under _Avoid_.
-- **`~/Projecs/ha-config/docs/adr/0001-shopping-list-apart-from-bilka-basket.md`** explains why
-  the shopping list is not the Bilka basket.
+- **`docs/adr/`** holds the decisions. 0001 explains why the shopping list is not the Bilka
+  basket.
+- **`~/Projecs/ha-config/HOME.md`** §3 (Groceries) holds the household facts: one shared Bilka
+  account, Bilka Skalborg pickup, the organic-with-a-price-cut preference.
 
 ## Bilka API traps (all verified against the live API, 2026-10-16)
 
