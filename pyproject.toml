@@ -1,0 +1,14 @@
+[project]
+name = "ha-bilka-togo"
+version = "0.1.0"
+description = "Home Assistant integration: a household shopping list that feeds Bilka To Go orders"
+requires-python = ">=3.14"
+
+[dependency-groups]
+dev = ["aiohttp==3.14.3", "pytest", "pytest-asyncio"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+pythonpath = ["."]
