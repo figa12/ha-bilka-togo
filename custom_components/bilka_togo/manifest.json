@@ -2,7 +2,7 @@
   "domain": "bilka_togo",
   "name": "Bilka To Go",
   "codeowners": ["@figa12"],
-  "config_flow": false,
+  "config_flow": true,
   "documentation": "https://github.com/figa12/ha-bilka-togo",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/figa12/ha-bilka-togo/issues",

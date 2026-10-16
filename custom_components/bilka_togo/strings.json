@@ -1,0 +1,31 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Sign in to Bilka To Go",
+        "description": "Use the household's Bilka To Go account. Prices and offers follow the store the account picks up from.",
+        "data": {
+          "email": "Email",
+          "password": "Password"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Sign in to Bilka To Go again",
+        "description": "Bilka refused the stored password for {email}. Enter the current one.",
+        "data": {
+          "password": "Password"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Bilka refused the email or password.",
+      "cannot_connect": "Could not reach Bilka To Go. Try again in a moment.",
+      "no_pickup_store": "The account has no pickup store yet. Choose one on bilkatogo.dk first."
+    },
+    "abort": {
+      "already_configured": "This Bilka account is already set up.",
+      "reauth_successful": "Signed in again.",
+      "wrong_account": "That password signed in to a different Bilka account."
+    }
+  }
+}

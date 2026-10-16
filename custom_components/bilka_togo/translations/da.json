@@ -1,0 +1,31 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Log ind på Bilka To Go",
+        "description": "Brug husstandens Bilka To Go-konto. Priser og tilbud følger den butik, kontoen afhenter i.",
+        "data": {
+          "email": "E-mail",
+          "password": "Adgangskode"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Log ind på Bilka To Go igen",
+        "description": "Bilka afviste den gemte adgangskode til {email}. Indtast den nuværende.",
+        "data": {
+          "password": "Adgangskode"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Bilka afviste e-mail eller adgangskode.",
+      "cannot_connect": "Kunne ikke få forbindelse til Bilka To Go. Prøv igen om lidt.",
+      "no_pickup_store": "Kontoen har ikke valgt en afhentningsbutik endnu. Vælg en på bilkatogo.dk først."
+    },
+    "abort": {
+      "already_configured": "Denne Bilka-konto er allerede sat op.",
+      "reauth_successful": "Logget ind igen.",
+      "wrong_account": "Den adgangskode loggede ind på en anden Bilka-konto."
+    }
+  }
+}

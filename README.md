@@ -8,9 +8,18 @@ decides to order, someone works through the list on a phone. Each item is turned
 specific Bilka product, chosen with this week's offers in view, and moved into the Bilka
 basket. Booking a pickup slot and paying stay in Bilka's own site.
 
-> **Status: early.** Only the Bilka client exists so far: login, product search with
-> per-store offers, and reading and changing the basket. The shopping list, setup flow and
-> cards are not built yet.
+> **Status: early.** The Bilka client and the setup screen exist: you can add the
+> integration and sign in, and it learns the account's pickup store. The shopping list and
+> the cards are not built yet.
+
+## Install
+
+1. In HACS, open the menu → *Custom repositories*, add `https://github.com/figa12/ha-bilka-togo`
+   with the type *Integration*, then download **Bilka To Go**.
+2. Restart Home Assistant.
+3. *Settings → Devices & services → Add integration → Bilka To Go*, and sign in with the
+   household's Bilka To Go account. The account must have a pickup store chosen on
+   bilkatogo.dk.
 
 ## Unofficial
 
@@ -25,8 +34,8 @@ password are entered in Home Assistant and are never stored in this repository.
 
 ```bash
 python3 -m venv .venv
-.venv/bin/pip install "aiohttp==3.14.3" pytest pytest-asyncio
+.venv/bin/pip install "pytest-homeassistant-custom-component==0.13.365"
 .venv/bin/python -m pytest
 ```
 
-The aiohttp version matches the one Home Assistant 2026.9 ships.
+That version of the test harness pins Home Assistant 2026.9.2, the version the household runs.

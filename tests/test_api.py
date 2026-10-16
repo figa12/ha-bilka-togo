@@ -6,7 +6,12 @@ import json
 
 import pytest
 
-from custom_components.bilka_togo.api import BilkaAuthError, BilkaClient
+from custom_components.bilka_togo.api import (
+    BilkaAuthError,
+    BilkaClient,
+    BilkaError,
+    BilkaNoPickupStore,
+)
 
 from .fake_session import FakeSession
 
@@ -212,3 +217,30 @@ async def test_empty_basket_leaves_packing_alone(client, session):
     await client.empty_basket()
     changed = sorted((call.params["productId"], call.params["count"]) for call in session.to("ChangeLineCount"))
     assert changed == [("19683", "0"), ("84120", "0")]
+
+
+async def test_account_reads_the_pickup_store_and_prices_searches_for_it(session):
+    """The store follows the account's own pickup setting rather than being configured."""
+    client = BilkaClient(session, "a@b.dk", "secret")
+    sign_in(session)
+    session.answer("GET", "/shop/v6/Cart$", {**cart(), "deliveryAddress": {"sid": "1652", "name": "Bilka Skalborg"}})
+    account = await client.account()
+    assert (account.user_id, account.store_id, account.store_name) == ("372513", "1652", "Bilka Skalborg")
+    assert session.to("/shop/v6/Cart")[0].params["extra"] == "deliveryAddress"
+
+    session.answer("POST", "algolia", search_answer())
+    await client.search("mælk")
+    assert "isInAssortmentIn%3A1652" in json.loads(session.to("algolia")[0].data)["requests"][0]["params"]
+
+
+async def test_account_without_a_pickup_store_raises(session):
+    client = BilkaClient(session, "a@b.dk", "secret")
+    sign_in(session)
+    session.answer("GET", "/shop/v6/Cart$", {**cart(), "deliveryAddress": {"sid": None}})
+    with pytest.raises(BilkaNoPickupStore):
+        await client.account()
+
+
+async def test_search_before_the_store_is_known_raises(session):
+    with pytest.raises(BilkaError, match="account"):
+        await BilkaClient(session, "a@b.dk", "secret").search("mælk")

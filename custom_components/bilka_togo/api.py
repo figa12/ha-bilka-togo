@@ -69,6 +69,19 @@ class BilkaAuthError(BilkaError):
     """The credentials were refused, or Bilka did not accept the session."""
 
 
+class BilkaNoPickupStore(BilkaError):
+    """The account has not chosen a store to pick up from."""
+
+
+@dataclass(frozen=True, slots=True)
+class Account:
+    """The signed-in Bilka account and the store it picks up from."""
+
+    user_id: str
+    store_id: str
+    store_name: str
+
+
 @dataclass(frozen=True, slots=True)
 class Multibuy:
     """An offer that only saves money when enough units from one group are bought."""
@@ -140,15 +153,39 @@ class BilkaClient:
     """Searches Bilka's range and reads and changes the household's basket."""
 
     def __init__(
-        self, session: aiohttp.ClientSession, email: str, password: str, store_id: str
+        self,
+        session: aiohttp.ClientSession,
+        email: str,
+        password: str,
+        store_id: str | None = None,
     ) -> None:
-        """Use a session of its own: the Bilka session lives in the cookie jar."""
+        """Use a session of its own: the Bilka session lives in the cookie jar.
+
+        Without a store id, call account() before searching; it sets the store the account
+        picks up from.
+        """
         self._session = session
         self._email = email
         self._password = password
-        self.store_id = str(store_id)
+        self.store_id = str(store_id) if store_id else None
         self._jwt: str | None = None
         self._signed_in_at = 0.0
+
+    async def account(self) -> Account:
+        """Read who is signed in and which store the account picks up from.
+
+        Searches are priced for that store from then on.
+        """
+        body = await self._bilka("shop/v6/Cart", {"extra": "deliveryAddress"})
+        pickup = body.get("deliveryAddress") or {}
+        if not pickup.get("sid"):
+            raise BilkaNoPickupStore("The account has no pickup store chosen")
+        self.store_id = str(pickup["sid"])
+        return Account(
+            user_id=str(body["uid"]),
+            store_id=self.store_id,
+            store_name=pickup.get("name") or f"Bilka {self.store_id}",
+        )
 
     async def login(self) -> None:
         """Sign in with Gigya and open a Bilka session."""
@@ -275,6 +312,8 @@ class BilkaClient:
         return body
 
     async def _algolia(self, params: dict[str, Any]) -> list[dict[str, Any]]:
+        if not self.store_id:
+            raise BilkaError("No store: call account() first")
         query = "&".join(
             f"{key}={quote(str(value), safe='')}"
             for key, value in {

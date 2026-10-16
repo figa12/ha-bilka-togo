@@ -32,6 +32,7 @@ on the household's HA instance. The HA configuration it serves lives in a separa
 
 ## Tests
 
-`.venv/bin/python -m pytest`. Tests use `tests/fake_session.py`, not aioresponses, which does
+`.venv/bin/python -m pytest`. The venv has `pytest-homeassistant-custom-component==0.13.365`,
+which pins HA 2026.9.2 (the live version); bump it together with HA. Client tests use `tests/fake_session.py`, not aioresponses, which does
 not work with aiohttp 3.14. Never run tests or scripts that change the real basket without
 asking: it is the household's live Bilka basket.
