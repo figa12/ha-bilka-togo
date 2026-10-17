@@ -7,13 +7,15 @@
  *
  * The integration enforces the list's rules (no item twice, amounts joined), so the card only
  * calls the to-do list's own actions. Suggestions come from bilka_togo.known_items: names that
- * have been through a transfer, never just anything someone typed.
+ * have been through a transfer, never just anything someone typed. Long-pressing a suggestion
+ * offers to forget it (bilka_togo.forget without a product), for a name that is no longer wanted.
  *
  * No build step: a plain custom element, served by the integration.
  */
 
 const UNDO_SECONDS = 5;
 const MAX_SUGGESTIONS = 10;
+const LONG_PRESS_MS = 550;
 
 const TEXT = {
   da: {
@@ -24,6 +26,9 @@ const TEXT = {
     removed: (name) => `«${name}» fjernet`,
     undo: "Fortryd",
     remove: (name) => `Fjern ${name}`,
+    forgetQuestion: (name) => `Glem «${name}» som forslag?`,
+    forget: "Glem",
+    cancel: "Annuller",
   },
   en: {
     name: "Item",
@@ -33,6 +38,9 @@ const TEXT = {
     removed: (name) => `“${name}” removed`,
     undo: "Undo",
     remove: (name) => `Remove ${name}`,
+    forgetQuestion: (name) => `Stop suggesting “${name}”?`,
+    forget: "Forget",
+    cancel: "Cancel",
   },
 };
 
@@ -125,6 +133,14 @@ class BilkaShoppingListCard extends HTMLElement {
           background: transparent; color: inherit; border: 1px solid var(--bilka-outline);
         }
         .chip.on-list { opacity: .55; }
+        .chip { user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+        .forget {
+          display: flex; align-items: center; gap: 10px; height: 48px; padding: 0 6px 0 20px;
+          border-radius: 24px; font-size: 19px; border: 1px solid var(--md-sys-color-error, #c62828);
+        }
+        .forget button { height: 38px; padding: 0 16px; border-radius: 19px; font-size: 18px;
+          background: transparent; color: inherit; }
+        .forget .yes { background: var(--md-sys-color-error, #c62828); color: #fff; font-weight: 500; }
         ul { list-style: none; margin: 0; padding: 0; }
         li {
           display: flex; align-items: center; gap: 16px;
@@ -339,17 +355,78 @@ class BilkaShoppingListCard extends HTMLElement {
     }
     const shown = [...starts, ...contains].slice(0, MAX_SUGGESTIONS);
     this.shadowRoot.getElementById("chips").replaceChildren(
-      ...shown.map((name) => {
-        const chip = document.createElement("button");
-        chip.type = "button";
-        chip.className = "chip";
-        if (this._items.some((item) => sameItem(item.summary, name))) chip.classList.add("on-list");
-        chip.textContent = name;
-        // One tap adds it, with whatever amount is typed.
-        chip.addEventListener("click", () => this._add(name, this._amount.value));
-        return chip;
-      }),
+      ...shown.map((name) => (name === this._forgetting ? this._forgetChip(name) : this._chip(name))),
     );
+  }
+
+  _chip(name) {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "chip";
+    if (this._items.some((item) => sameItem(item.summary, name))) chip.classList.add("on-list");
+    chip.textContent = name;
+    // One tap adds it, with whatever amount is typed; a long press offers to forget it.
+    let timer;
+    let start;
+    let pressed = false;
+    const cancel = () => clearTimeout(timer);
+    chip.addEventListener("contextmenu", (event) => event.preventDefault());
+    chip.addEventListener("pointerdown", (event) => {
+      start = [event.clientX, event.clientY];
+      pressed = false;
+      timer = setTimeout(() => {
+        pressed = true;
+        this._forgetting = name;
+        this._renderChips();
+      }, LONG_PRESS_MS);
+    });
+    chip.addEventListener("pointermove", (event) => {
+      if (start && Math.hypot(event.clientX - start[0], event.clientY - start[1]) > 10) cancel();
+    });
+    chip.addEventListener("pointerup", cancel);
+    chip.addEventListener("pointercancel", cancel);
+    chip.addEventListener("click", () => {
+      if (!pressed) this._add(name, this._amount.value);
+    });
+    return chip;
+  }
+
+  _forgetChip(name) {
+    const box = document.createElement("div");
+    box.className = "forget";
+    const question = document.createElement("span");
+    question.textContent = this._t.forgetQuestion(name);
+    const cancel = document.createElement("button");
+    cancel.type = "button";
+    cancel.textContent = this._t.cancel;
+    cancel.addEventListener("click", () => {
+      this._forgetting = undefined;
+      this._renderChips();
+    });
+    const yes = document.createElement("button");
+    yes.type = "button";
+    yes.className = "yes";
+    yes.textContent = this._t.forget;
+    yes.addEventListener("click", () => this._forget(name));
+    box.append(question, cancel, yes);
+    return box;
+  }
+
+  async _forget(name) {
+    this._forgetting = undefined;
+    try {
+      await this._hass.callWS({
+        type: "call_service",
+        domain: "bilka_togo",
+        service: "forget",
+        service_data: { item: name },
+        return_response: true,
+      });
+      this._known = this._known.filter((known) => known !== name);
+    } catch (err) {
+      console.error("bilka-shopping-list-card: could not forget", err);
+    }
+    this._renderChips();
   }
 
   _maybeFocus() {

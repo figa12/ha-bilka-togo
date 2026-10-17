@@ -79,6 +79,16 @@ def test_forget_takes_one_product_out():
     assert memory.known_items() == ["mælk"]  # still a known item
 
 
+def test_forgetting_the_item_itself_ends_the_suggestion():
+    memory = Memory({})
+    memory.record_move("Mælk", "19683", 6, NOW)
+    memory.record_move("ost", "89550", 1, NOW)
+    assert memory.forget("mælk") is True
+    assert memory.known_items() == ["ost"]
+    assert memory.previously_chosen("mælk") == {}
+    assert memory.forget("mælk") is False
+
+
 @pytest.mark.parametrize(
     ("amount", "count"),
     [("2", 2), (" 6 ", 6), ("6 l", None), ("2, 2", None), ("ekstra til fredag", None), (None, None), ("0", None)],

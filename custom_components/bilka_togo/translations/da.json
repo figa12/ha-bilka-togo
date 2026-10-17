@@ -77,8 +77,8 @@
       }
     },
     "forget": {
-      "name": "Glem produkt",
-      "description": "Fjern et produkt fra en vares tidligere valgte produkter.",
+      "name": "Glem",
+      "description": "Fjern et produkt fra en vares tidligere valgte produkter, eller uden et produkt, glem varen helt: den bliver ikke længere foreslået.",
       "fields": {
         "item": {
           "name": "Vare",
@@ -86,7 +86,7 @@
         },
         "product_id": {
           "name": "Produkt",
-          "description": "Bilkas produkt-id."
+          "description": "Bilkas produkt-id. Udelad for at glemme hele varen."
         }
       }
     },

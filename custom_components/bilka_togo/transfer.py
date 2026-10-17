@@ -44,10 +44,20 @@ class Memory:
         """The products chosen for an item before, by product id."""
         return dict((self._known.get(item_key(item_name)) or {}).get("chosen", {}))
 
-    def forget(self, item_name: str, product_id: str) -> bool:
-        """Take a product out of an item's previously chosen. Returns whether it was there."""
-        known = self._known.get(item_key(item_name))
-        if not known or product_id not in known["chosen"]:
+    def forget(self, item_name: str, product_id: str | None = None) -> bool:
+        """Take a product out of an item's previously chosen, or without one, the whole item.
+
+        Forgetting the whole item makes it a name like any other: no longer suggested, and
+        nothing previously chosen for it. Returns whether there was anything to forget.
+        """
+        key = item_key(item_name)
+        known = self._known.get(key)
+        if not known:
+            return False
+        if product_id is None:
+            del self._known[key]
+            return True
+        if product_id not in known["chosen"]:
             return False
         del known["chosen"][product_id]
         return True

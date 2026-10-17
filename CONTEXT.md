@@ -26,7 +26,9 @@ _Avoid_: quantity, count, note
 
 **Known item**:
 An item name that has had a product chosen for it in at least one transfer. Only known items
-are offered as suggestions when adding to the shopping list.
+are offered as suggestions when adding to the shopping list. A name stops being a known item
+only when someone deliberately forgets it, which forgets its previously chosen products too;
+it becomes known again the next time a product is chosen for it.
 _Avoid_: saved item, favourite, suggestion
 
 **Previously chosen**:

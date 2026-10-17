@@ -25,7 +25,7 @@ autofocus_hash: "#indkob"   # open the keyboard when this Bubble Card pop-up ope
 ```
 
 Adding, for a wall display: a name, an optional amount, suggestions from known items, and the
-list with ✕ and undo.
+list with ✕ and undo. Long-press a suggestion to stop suggesting it.
 
 ```yaml
 type: custom:bilka-transfer-card

@@ -41,7 +41,7 @@ forget:
       selector:
         text:
     product_id:
-      required: true
+      required: false
       example: "19683"
       selector:
         text:

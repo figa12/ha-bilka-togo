@@ -5,7 +5,7 @@ A transfer is a series of moves with no final confirmation (CONTEXT.md, ADR 0001
   preference order.
 - search: Bilka's range for something new, in Bilka's own order.
 - move: one item becomes a basket line and leaves the shopping list, all at once.
-- forget: take a product out of an item's previously chosen.
+- forget: take a product out of an item's previously chosen, or forget a known item whole.
 - empty_basket: remove every product line, never the packing line.
 - known_items: the names suggested while adding on the wall display.
 
@@ -49,7 +49,7 @@ MOVE_SCHEMA = vol.Schema(
         vol.Required("count"): vol.All(vol.Coerce(int), vol.Range(min=1, max=99)),
     }
 )
-FORGET_SCHEMA = vol.Schema({vol.Required("item"): cv.string, vol.Required("product_id"): cv.string})
+FORGET_SCHEMA = vol.Schema({vol.Required("item"): cv.string, vol.Optional("product_id"): cv.string})
 
 # Search asks for more than it shows when filtering for organic here, since Bilka's own
 # organic tag is unreliable and the filter has to read names too.
@@ -131,7 +131,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
 
     async def forget(call: ServiceCall) -> ServiceResponse:
         data = _entry(hass).runtime_data
-        forgotten = data.memory.forget(call.data["item"], call.data["product_id"])
+        forgotten = data.memory.forget(call.data["item"], call.data.get("product_id"))
         if forgotten:
             data.changed()
         return {"forgotten": forgotten}

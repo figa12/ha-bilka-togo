@@ -77,8 +77,8 @@
       }
     },
     "forget": {
-      "name": "Forget product",
-      "description": "Take a product out of an item's previously chosen products.",
+      "name": "Forget",
+      "description": "Take a product out of an item's previously chosen products or, without a product, forget the known item altogether: it is no longer suggested.",
       "fields": {
         "item": {
           "name": "Item",
@@ -86,7 +86,7 @@
         },
         "product_id": {
           "name": "Product",
-          "description": "The Bilka product id."
+          "description": "The Bilka product id. Leave out to forget the whole item."
         }
       }
     },

@@ -155,6 +155,14 @@ async def test_forget_removes_a_product_from_previously_chosen(hass, bilka) -> N
     assert [p["id"] for p in item["previously_chosen"]] == ["A"]
 
 
+async def test_forget_without_a_product_forgets_the_known_item(hass, bilka) -> None:
+    bilka.catalogue["A"] = product("A", price=1)
+    await add(hass, "mælk")
+    await call(hass, "move", item=await uid_of(hass, "mælk"), product_id="A", count=1)
+    assert (await call(hass, "forget", item="mælk"))["forgotten"] is True
+    assert (await call(hass, "known_items"))["items"] == []
+
+
 async def test_search_reports_offers_and_multibuy_progress(hass, bilka) -> None:
     mix = Multibuy("2660", "Mix 5 for 300,00", 5, 30000)
     bilka.catalogue.update(
