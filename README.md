@@ -11,8 +11,8 @@ basket. Booking a pickup slot and paying stay in Bilka's own site.
 > **Status: early.** You can sign in; the shopping list exists as a to-do list
 > (`todo.bilka_to_go_shopping_list`) that keeps the household's rules; and the transfer exists
 > as actions (`bilka_togo.get_transfer`, `search`, `move`, `forget`, `empty_basket`,
-> `known_items`). The wall display card (`custom:bilka-shopping-list-card`) exists; the
-> phone transfer card does not yet.
+> `known_items`). Both cards exist: one for adding on a wall display, one for transferring on
+> a phone.
 
 ## Cards
 
@@ -23,6 +23,19 @@ type: custom:bilka-shopping-list-card
 entity: todo.bilka_to_go_shopping_list
 autofocus_hash: "#indkob"   # open the keyboard when this Bubble Card pop-up opens
 ```
+
+Adding, for a wall display: a name, an optional amount, suggestions from known items, and the
+list with ✕ and undo.
+
+```yaml
+type: custom:bilka-transfer-card
+entity: todo.bilka_to_go_shopping_list
+checkout_url: https://www.bilkatogo.dk/kassen   # the default
+```
+
+Transferring, for a phone: the basket on top (Tøm kurv, Til kassen), then the list. Tap an item
+for a count, the products chosen for it before and a search of Bilka; tapping a product moves
+it. Swipe an item left to delete it; long-press a previously chosen product to forget it.
 
 ## Install
 

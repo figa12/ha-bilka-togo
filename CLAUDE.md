@@ -44,4 +44,9 @@ Plain custom elements in `custom_components/bilka_togo/frontend/`, no build step
 integration serves that folder and adds each card as a frontend module with a content hash, so
 no dashboard resource is needed and browsers refetch a changed card. Check syntax with
 `node --check`. A card change is not finished until it has been rendered on the real dashboard
-at the real size (wall display 1920 × 1080): see `~/Projecs/ha-config/CLAUDE.md`.
+at the real size (wall display 1920 × 1080, phone 390 × 844): see `~/Projecs/ha-config/CLAUDE.md`.
+
+Before deploying, a card can be looked at in headless Firefox with a stand-in `hass`:
+`firefox --headless --window-size=390,1000 --screenshot out.png file://…/index.html`. The
+screenshot is taken at the load event, so fill the card synchronously (set its state and call
+its render) rather than through the stand-in's promises.
