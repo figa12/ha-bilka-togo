@@ -54,6 +54,12 @@ class BilkaShoppingListCard extends HTMLElement {
     if (!this.shadowRoot) this._build();
   }
 
+  // A getter as well as a setter: dashboard plugins (UIX) read a card's hass back, and Home
+  // Assistant turns any error while handing hass over into a bare "Configuration error".
+  get hass() {
+    return this._hass;
+  }
+
   set hass(hass) {
     const first = !this._hass;
     this._hass = hass;
