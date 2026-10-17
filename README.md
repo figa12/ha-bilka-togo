@@ -8,11 +8,11 @@ decides to order, someone works through the list on a phone. Each item is turned
 specific Bilka product, chosen with this week's offers in view, and moved into the Bilka
 basket. Booking a pickup slot and paying stay in Bilka's own site.
 
-> **Status: early.** You can sign in; the shopping list exists as a to-do list
-> (`todo.bilka_to_go_shopping_list`) that keeps the household's rules; and the transfer exists
-> as actions (`bilka_togo.get_transfer`, `search`, `move`, `forget`, `empty_basket`,
-> `known_items`). Both cards exist: one for adding on a wall display, one for transferring on
-> a phone.
+> **Status: in use.** The household's whole flow works: adding on the kitchen wall display,
+> transferring on a phone. The shopping list is a to-do list (`todo.bilka_to_go_shopping_list`)
+> that keeps the household's rules, and the transfer is a set of actions
+> (`bilka_togo.get_transfer`, `search`, `move`, `forget`, `empty_basket`, `known_items`) behind
+> the two cards below.
 
 ## Cards
 
