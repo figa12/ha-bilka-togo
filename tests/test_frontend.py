@@ -17,4 +17,8 @@ async def test_the_card_is_served_and_loaded(hass: HomeAssistant, hass_client, c
 
     response = await (await hass_client()).get(url)
     assert response.status == 200
-    assert f'customElements.define("{card}"' in await response.text()
+    text = await response.text()
+    assert f'customElements.define("{card}"' in text
+    # Defined only once Home Assistant's own registry is in place; defined any earlier, the card
+    # is invisible to Home Assistant and shows as "Configuration error".
+    assert 'customElements.whenDefined("home-assistant")' in text

@@ -49,4 +49,6 @@ at the real size (wall display 1920 × 1080, phone 390 × 844): see `~/Projecs/h
 Before deploying, a card can be looked at in headless Firefox with a stand-in `hass`:
 `firefox --headless --window-size=390,1000 --screenshot out.png file://…/index.html`. The
 screenshot is taken at the load event, so fill the card synchronously (set its state and call
-its render) rather than through the stand-in's promises.
+its render) rather than through the stand-in's promises. The cards define themselves only once
+`home-assistant` is defined, so the page must define a stand-in one
+(`customElements.define("home-assistant", class extends HTMLElement {})`).

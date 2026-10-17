@@ -805,7 +805,14 @@ class BilkaTransferCard extends HTMLElement {
   }
 }
 
-customElements.define("bilka-transfer-card", BilkaTransferCard);
+// Home Assistant's own script swaps in another custom element registry when it runs (a polyfill
+// for scoped registries), and this module can run before it does. A card defined in the
+// browser's registry then is invisible to Home Assistant, which waits for it forever and shows
+// a bare "Configuration error". So define once Home Assistant's own element exists, in
+// whichever registry is current by then.
+customElements.whenDefined("home-assistant").then(() => {
+  if (!customElements.get("bilka-transfer-card")) customElements.define("bilka-transfer-card", BilkaTransferCard);
+});
 window.customCards = window.customCards || [];
 window.customCards.push({
   type: "bilka-transfer-card",
