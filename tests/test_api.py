@@ -15,8 +15,8 @@ from custom_components.bilka_togo.api import (
 
 from .fake_session import FakeSession
 
-STORE = "1652"
-SIGNED_IN = {"uid": 372513}
+STORE = "1000"
+SIGNED_IN = {"uid": 100001}
 ANONYMOUS = {"uid": -1}
 
 
@@ -38,7 +38,7 @@ def search_answer(*hits):
     return {"results": [{"hits": list(hits)}]}
 
 
-def cart(*lines, uid=372513):
+def cart(*lines, uid=100001):
     """A Cart answer holding the packing line and the given (id, count, multipromo) products."""
     products = [
         {
@@ -132,8 +132,8 @@ async def test_search_names_the_fields_and_filters_to_the_store(client, session)
     [call] = session.to("algolia")
     params = json.loads(call.data)["requests"][0]["params"]
     assert "storeData" in params  # without named fields the index returns only ids
-    assert "isInAssortmentIn%3A1652" in params
-    assert "isInOffer%3A1652" in params
+    assert "isInAssortmentIn%3A1000" in params
+    assert "isInOffer%3A1000" in params
 
 
 async def test_products_by_id_asks_only_for_those_ids(client, session):
@@ -223,14 +223,14 @@ async def test_account_reads_the_pickup_store_and_prices_searches_for_it(session
     """The store follows the account's own pickup setting rather than being configured."""
     client = BilkaClient(session, "a@b.dk", "secret")
     sign_in(session)
-    session.answer("GET", "/shop/v6/Cart$", {**cart(), "deliveryAddress": {"sid": "1652", "name": "Bilka Skalborg"}})
+    session.answer("GET", "/shop/v6/Cart$", {**cart(), "deliveryAddress": {"sid": "1000", "name": "Bilka Eksempelby"}})
     account = await client.account()
-    assert (account.user_id, account.store_id, account.store_name) == ("372513", "1652", "Bilka Skalborg")
+    assert (account.user_id, account.store_id, account.store_name) == ("100001", "1000", "Bilka Eksempelby")
     assert session.to("/shop/v6/Cart")[0].params["extra"] == "deliveryAddress"
 
     session.answer("POST", "algolia", search_answer())
     await client.search("mælk")
-    assert "isInAssortmentIn%3A1652" in json.loads(session.to("algolia")[0].data)["requests"][0]["params"]
+    assert "isInAssortmentIn%3A1000" in json.loads(session.to("algolia")[0].data)["requests"][0]["params"]
 
 
 async def test_account_without_a_pickup_store_raises(session):
@@ -245,7 +245,7 @@ async def test_search_before_the_store_is_known_asks_bilka_first(session):
     """Bilka may have been down at startup; the first search then learns the store."""
     client = BilkaClient(session, "a@b.dk", "secret")
     sign_in(session)
-    session.answer("GET", "/shop/v6/Cart$", {**cart(), "deliveryAddress": {"sid": "1652", "name": "Bilka Skalborg"}})
+    session.answer("GET", "/shop/v6/Cart$", {**cart(), "deliveryAddress": {"sid": "1000", "name": "Bilka Eksempelby"}})
     session.answer("POST", "algolia", search_answer())
     await client.search("mælk")
-    assert client.store_id == "1652"
+    assert client.store_id == "1000"

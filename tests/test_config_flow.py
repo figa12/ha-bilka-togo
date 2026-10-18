@@ -20,7 +20,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 
 LOGIN = {CONF_EMAIL: "hjem@example.dk", CONF_PASSWORD: "hemmelig"}
-ACCOUNT = Account(user_id="372513", store_id="1652", store_name="Bilka Skalborg")
+ACCOUNT = Account(user_id="100001", store_id="1000", store_name="Bilka Eksempelby")
 
 
 def bilka(account=ACCOUNT, error=None):
@@ -48,9 +48,9 @@ async def test_sign_in_creates_an_entry_named_after_the_store(hass: HomeAssistan
     result = await hass.config_entries.flow.async_configure(result["flow_id"], LOGIN)
 
     assert result["type"] is FlowResultType.CREATE_ENTRY
-    assert result["title"] == "Bilka To Go (Bilka Skalborg)"
+    assert result["title"] == "Bilka To Go (Bilka Eksempelby)"
     assert result["data"] == LOGIN
-    assert result["result"].unique_id == "372513"
+    assert result["result"].unique_id == "100001"
 
 
 @pytest.mark.parametrize(
@@ -77,7 +77,7 @@ async def test_a_failed_sign_in_shows_why_and_can_be_retried(
 
 
 async def test_the_same_account_cannot_be_added_twice(hass: HomeAssistant, client) -> None:
-    MockConfigEntry(domain=DOMAIN, unique_id="372513", data=LOGIN).add_to_hass(hass)
+    MockConfigEntry(domain=DOMAIN, unique_id="100001", data=LOGIN).add_to_hass(hass)
     result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_USER})
     result = await hass.config_entries.flow.async_configure(result["flow_id"], LOGIN)
     assert result["type"] is FlowResultType.ABORT
@@ -85,7 +85,7 @@ async def test_the_same_account_cannot_be_added_twice(hass: HomeAssistant, clien
 
 
 async def test_setup_learns_the_store_and_unloads(hass: HomeAssistant, client) -> None:
-    entry = MockConfigEntry(domain=DOMAIN, unique_id="372513", data=LOGIN)
+    entry = MockConfigEntry(domain=DOMAIN, unique_id="100001", data=LOGIN)
     entry.add_to_hass(hass)
 
     assert await hass.config_entries.async_setup(entry.entry_id)
@@ -97,7 +97,7 @@ async def test_setup_learns_the_store_and_unloads(hass: HomeAssistant, client) -
 
 
 async def test_a_reauth_updates_only_the_password(hass: HomeAssistant, client) -> None:
-    entry = MockConfigEntry(domain=DOMAIN, unique_id="372513", data=LOGIN)
+    entry = MockConfigEntry(domain=DOMAIN, unique_id="100001", data=LOGIN)
     entry.add_to_hass(hass)
     result = await entry.start_reauth_flow(hass)
     result = await hass.config_entries.flow.async_configure(
@@ -109,9 +109,9 @@ async def test_a_reauth_updates_only_the_password(hass: HomeAssistant, client) -
 
 
 async def test_reauth_refuses_a_different_account(hass: HomeAssistant, client) -> None:
-    entry = MockConfigEntry(domain=DOMAIN, unique_id="372513", data=LOGIN)
+    entry = MockConfigEntry(domain=DOMAIN, unique_id="100001", data=LOGIN)
     entry.add_to_hass(hass)
-    client.account.return_value = Account(user_id="999", store_id="1652", store_name="Bilka Skalborg")
+    client.account.return_value = Account(user_id="999", store_id="1000", store_name="Bilka Eksempelby")
 
     result = await entry.start_reauth_flow(hass)
     result = await hass.config_entries.flow.async_configure(

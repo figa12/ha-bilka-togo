@@ -22,7 +22,7 @@ LOGIN = {CONF_EMAIL: "hjem@example.dk", CONF_PASSWORD: "hemmelig"}
 @pytest.fixture
 def client():
     fake = AsyncMock()
-    fake.account.return_value = Account("372513", "1652", "Bilka Skalborg")
+    fake.account.return_value = Account("100001", "1000", "Bilka Eksempelby")
     with (
         patch("custom_components.bilka_togo.create_client", return_value=fake),
         patch("custom_components.bilka_togo.config_flow.create_client", return_value=fake),
@@ -32,7 +32,7 @@ def client():
 
 @pytest.fixture
 async def entry(hass: HomeAssistant, client) -> MockConfigEntry:
-    entry = MockConfigEntry(domain=DOMAIN, unique_id="372513", data=LOGIN)
+    entry = MockConfigEntry(domain=DOMAIN, unique_id="100001", data=LOGIN)
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
@@ -120,7 +120,7 @@ async def test_the_list_survives_a_reload_straight_after_a_change(
 async def test_the_list_works_while_bilka_is_down(hass: HomeAssistant, client) -> None:
     """Adding from the kitchen must not depend on Bilka answering."""
     client.account.side_effect = TimeoutError()
-    entry = MockConfigEntry(domain=DOMAIN, unique_id="372513", data=LOGIN)
+    entry = MockConfigEntry(domain=DOMAIN, unique_id="100001", data=LOGIN)
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
     assert entry.state is ConfigEntryState.LOADED
@@ -130,7 +130,7 @@ async def test_the_list_works_while_bilka_is_down(hass: HomeAssistant, client) -
 
 async def test_a_refused_password_keeps_the_list_and_asks_again(hass: HomeAssistant, client) -> None:
     client.account.side_effect = BilkaAuthError("refused")
-    entry = MockConfigEntry(domain=DOMAIN, unique_id="372513", data=LOGIN)
+    entry = MockConfigEntry(domain=DOMAIN, unique_id="100001", data=LOGIN)
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()

@@ -38,7 +38,7 @@ class FakeBilka:
     def __init__(self) -> None:
         self.counts: dict[str, int] = {}
         self.catalogue: dict[str, Product] = {}
-        self.account = AsyncMock(return_value=Account("372513", "1652", "Bilka Skalborg"))
+        self.account = AsyncMock(return_value=Account("100001", "1000", "Bilka Eksempelby"))
         self.fail: Exception | None = None
 
     async def basket(self) -> Basket:
@@ -74,7 +74,7 @@ class FakeBilka:
 async def bilka(hass: HomeAssistant) -> FakeBilka:
     fake = FakeBilka()
     with patch("custom_components.bilka_togo.create_client", return_value=fake):
-        entry = MockConfigEntry(domain=DOMAIN, unique_id="372513", data={CONF_EMAIL: "a@b.dk", CONF_PASSWORD: "x"})
+        entry = MockConfigEntry(domain=DOMAIN, unique_id="100001", data={CONF_EMAIL: "a@b.dk", CONF_PASSWORD: "x"})
         entry.add_to_hass(hass)
         assert await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
@@ -111,7 +111,7 @@ async def test_a_move_puts_the_line_in_the_basket_and_takes_the_item_off(hass, b
 
 
 async def test_a_move_increases_a_product_already_in_the_basket(hass, bilka) -> None:
-    bilka.counts["19683"] = 2  # Pia put two in from the Bilka app
+    bilka.counts["19683"] = 2  # someone put two in from the Bilka app
     await add(hass, "mælk")
     result = await call(hass, "move", item=await uid_of(hass, "mælk"), product_id="19683", count=6)
     assert result["count"] == 8
