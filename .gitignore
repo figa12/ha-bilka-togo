@@ -5,3 +5,4 @@ __pycache__/
 .env
 *.env
 CLAUDE.local.md
+node_modules/
