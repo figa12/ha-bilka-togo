@@ -16,6 +16,7 @@
 const UNDO_SECONDS = 5;
 const MAX_SUGGESTIONS = 10;
 const LONG_PRESS_MS = 550;
+const SECTIONS = ["add", "amount", "suggestions", "list"];
 
 const TEXT = {
   da: {
@@ -44,11 +45,31 @@ const TEXT = {
   },
 };
 
+// Thrown errors become Home Assistant's normal card error, so a typo cannot silently hide a part.
+function parseSections(sections) {
+  if (sections === undefined) return new Set(SECTIONS);
+  if (!Array.isArray(sections) || !sections.length) {
+    throw new Error(`sections must be a list of: ${SECTIONS.join(", ")}`);
+  }
+  for (const section of sections) {
+    if (!SECTIONS.includes(section)) {
+      throw new Error(`sections has an unknown value "${section}". Choose from: ${SECTIONS.join(", ")}`);
+    }
+  }
+  const parsed = new Set(sections);
+  if (parsed.size !== sections.length) throw new Error("sections lists a value twice");
+  for (const section of ["amount", "suggestions"]) {
+    if (parsed.has(section) && !parsed.has("add")) throw new Error(`sections has "${section}", which needs "add"`);
+  }
+  return parsed;
+}
+
 const sameItem = (a, b) =>
   a.split(/\s+/).join(" ").trim().toLowerCase() === b.split(/\s+/).join(" ").trim().toLowerCase();
 
 class BilkaShoppingListCard extends HTMLElement {
   setConfig(config) {
+    const sections = parseSections(config.sections);
     this._config = {
       entity: "todo.bilka_to_go_shopping_list",
       // Open the keyboard when the card's pop-up opens (Bubble Card hash), or on load if true.
@@ -56,10 +77,12 @@ class BilkaShoppingListCard extends HTMLElement {
       language: "da",
       ...config,
     };
+    this._sections = sections;
     this._t = TEXT[this._config.language] || TEXT.da;
     this._items = [];
     this._known = [];
     if (!this.shadowRoot) this._build();
+    this._showSections();
   }
 
   // A getter as well as a setter: dashboard plugins (UIX) read a card's hass back, and Home
@@ -81,7 +104,7 @@ class BilkaShoppingListCard extends HTMLElement {
     this._onLocation = () => this._maybeFocus();
     window.addEventListener("location-changed", this._onLocation);
     window.addEventListener("hashchange", this._onLocation);
-    if (this._hass && !this._unsub) this._subscribe();
+    this._subscribe();
     this._maybeFocus();
   }
 
@@ -92,7 +115,11 @@ class BilkaShoppingListCard extends HTMLElement {
   }
 
   getCardSize() {
-    return 2 + Math.min(this._items.length, 8);
+    const has = (section) => this._sections.has(section);
+    return Math.max(
+      1,
+      (has("add") ? 1 : 0) + (has("suggestions") ? 1 : 0) + (has("list") ? Math.min(this._items.length, 8) : 0),
+    );
   }
 
   _build() {
@@ -107,6 +134,7 @@ class BilkaShoppingListCard extends HTMLElement {
           display: block;
           color: var(--primary-text-color);
         }
+        [hidden] { display: none !important; }
         form { display: flex; gap: 12px; padding: 4px 0 12px; }
         input {
           font: inherit; font-size: 22px; color: inherit;
@@ -174,9 +202,11 @@ class BilkaShoppingListCard extends HTMLElement {
         <button id="add" type="submit" disabled></button>
       </form>
       <div id="chips"></div>
-      <ul id="list"></ul>
-      <div id="empty"></div>
-      <div id="undo"><span id="undo-text"></span><button id="undo-button" type="button"></button></div>
+      <div id="items">
+        <ul id="list"></ul>
+        <div id="empty"></div>
+        <div id="undo"><span id="undo-text"></span><button id="undo-button" type="button"></button></div>
+      </div>
     `;
     const $ = (id) => root.getElementById(id);
     this._name = $("name");
@@ -200,27 +230,41 @@ class BilkaShoppingListCard extends HTMLElement {
     this._renderList();
   }
 
+  _showSections() {
+    const root = this.shadowRoot;
+    root.querySelector("form").hidden = !this._sections.has("add");
+    this._amount.hidden = !this._sections.has("amount");
+    if (this._amount.hidden) this._amount.value = "";
+    root.getElementById("chips").hidden = !this._sections.has("suggestions");
+    root.getElementById("items").hidden = !this._sections.has("list");
+  }
+
   async _subscribe() {
-    if (!this._hass || this._unsub || !this.isConnected) return;
+    if (!this._hass || this._subscription || !this.isConnected) return;
+    // The card can leave the page while the answer is on its way (an expander closing), and come
+    // back: only the newest subscription counts, and an outdated one is ended when it arrives.
+    const subscription = (this._subscription = {});
     try {
-      this._unsub = await this._hass.connection.subscribeMessage(
+      const unsub = await this._hass.connection.subscribeMessage(
         (message) => {
+          if (this._subscription !== subscription) return;
           this._items = message.items.filter((item) => item.status === "needs_action");
           this._renderList();
           this._renderChips();
         },
         { type: "todo/item/subscribe", entity_id: this._config.entity },
       );
+      if (this._subscription === subscription) subscription.unsub = unsub;
+      else unsub();
     } catch (err) {
+      if (this._subscription === subscription) this._subscription = undefined;
       console.error("bilka-shopping-list-card: could not follow the list", err);
     }
   }
 
   _unsubscribe() {
-    if (this._unsub) {
-      this._unsub();
-      this._unsub = undefined;
-    }
+    this._subscription?.unsub?.();
+    this._subscription = undefined;
   }
 
   async _loadKnown() {
@@ -430,7 +474,8 @@ class BilkaShoppingListCard extends HTMLElement {
   }
 
   _maybeFocus() {
-    const hash = this._config?.autofocus_hash;
+    if (!this._sections?.has("add")) return;
+    const hash = this._config.autofocus_hash;
     if (hash === true || (hash && window.location.hash === hash)) {
       // Names that became known in a transfer since the last opening.
       if (this._hass) this._loadKnown();

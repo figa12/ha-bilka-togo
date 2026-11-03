@@ -41,7 +41,8 @@ asking: it is a real person's live Bilka basket.
 Plain custom elements in `custom_components/bilka_togo/frontend/`, no build step. The
 integration serves that folder and adds each card as a frontend module with a content hash, so
 no dashboard resource is needed and browsers refetch a changed card. Check syntax with
-`node --check`. A card change is not finished until it has been rendered on the real dashboard
+`node --check`, and test with `npm test`, which runs the real card in jsdom with a stand-in
+`hass` (dev only; nothing from npm ships). A card change is not finished until it has been rendered on the real dashboard
 at the real size it will be shown at (a wall display, a phone).
 
 Before deploying, a card can be looked at in headless Firefox with a stand-in `hass`:

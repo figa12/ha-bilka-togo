@@ -1,0 +1,12 @@
+{
+  "name": "ha-bilka-togo-card-tests",
+  "private": true,
+  "type": "module",
+  "description": "Dev only: tests for the cards. Nothing here ships with the integration.",
+  "scripts": {
+    "test": "node --test \"tests/cards/*.test.mjs\""
+  },
+  "devDependencies": {
+    "jsdom": "^30.1.3"
+  }
+}
