@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { Card, loadPage, settle, standInHass } from "./stand-in.mjs";
+import { Card, Editor, loadPage, settle, standInHass } from "./stand-in.mjs";
 
 const ENTITY = { entity: "todo.bilka_to_go_shopping_list" };
 
@@ -200,4 +200,83 @@ test("reconfiguring a card on the page keeps its list and suggestions", async (t
   assert.deepEqual(card.suggestions.map((chip) => chip.textContent), ["pasta"]);
   hass.emit();
   assert.deepEqual(card.rows, ["mælk", "ris"]);
+});
+
+const CONFIG = { type: "custom:bilka-shopping-list-card", ...ENTITY, autofocus_hash: "#indkob" };
+
+test("the editor shows everything ticked for a card without sections", async (t) => {
+  const editor = new Editor(await loadPage(t), CONFIG);
+  assert.deepEqual(editor.ticked, ["add", "amount", "suggestions", "list"]);
+  assert.equal(editor.saved.length, 0);
+});
+
+test("the editor shows what a card's sections hold", async (t) => {
+  const editor = new Editor(await loadPage(t), { ...CONFIG, sections: ["list", "add"] });
+  assert.deepEqual(editor.ticked, ["add", "list"]);
+});
+
+test("unticking saves the sections left, and keeps the rest of the config", async (t) => {
+  const editor = new Editor(await loadPage(t), CONFIG);
+  editor.click("amount");
+  assert.deepEqual(editor.lastSaved, { ...CONFIG, sections: ["add", "suggestions", "list"] });
+});
+
+test("sections leaves the config again when everything is ticked", async (t) => {
+  const editor = new Editor(await loadPage(t), { ...CONFIG, sections: ["add", "suggestions", "list"] });
+  editor.click("amount");
+  assert.deepEqual(editor.lastSaved, CONFIG);
+});
+
+test("sections are saved in the card's order, whatever order they are ticked in", async (t) => {
+  const editor = new Editor(await loadPage(t), { ...CONFIG, sections: ["list"] });
+  editor.click("add");
+  assert.deepEqual(editor.lastSaved.sections, ["add", "list"]);
+});
+
+test("unticking add also takes amount and suggestions, and locks them", async (t) => {
+  const editor = new Editor(await loadPage(t), CONFIG);
+  editor.click("add");
+  assert.deepEqual(editor.lastSaved.sections, ["list"]);
+  assert.deepEqual(editor.ticked, ["list"]);
+  assert.deepEqual(editor.locked, ["amount", "suggestions", "list"]);
+});
+
+test("ticking add again unlocks amount and suggestions", async (t) => {
+  const editor = new Editor(await loadPage(t), { ...CONFIG, sections: ["list"] });
+  editor.click("add");
+  assert.deepEqual(editor.locked, []);
+  editor.click("amount");
+  assert.deepEqual(editor.lastSaved.sections, ["add", "amount", "list"]);
+});
+
+test("the last part left cannot be unticked", async (t) => {
+  const onlyAdd = new Editor(await loadPage(t), { ...CONFIG, sections: ["add"] });
+  assert.deepEqual(onlyAdd.locked, ["add"]);
+  const onlyList = new Editor(await loadPage(t), { ...CONFIG, sections: ["list"] });
+  assert.deepEqual(onlyList.locked, ["amount", "suggestions", "list"]);
+});
+
+test("whatever the editor saves, the card accepts", async (t) => {
+  const window = await loadPage(t);
+  const editor = new Editor(window, CONFIG);
+  for (const section of ["amount", "suggestions", "add", "add", "list", "amount"]) {
+    editor.click(section);
+    const card = window.document.createElement("bilka-shopping-list-card");
+    card.setConfig(editor.lastSaved);
+  }
+  assert.equal(editor.saved.length, 6);
+});
+
+test("the editor refuses invalid sections, so Home Assistant can offer YAML instead", async (t) => {
+  const window = await loadPage(t);
+  const Card = window.customElements.get("bilka-shopping-list-card");
+  assert.throws(() => Card.getConfigElement().setConfig({ ...CONFIG, sections: ["chips"] }), /sections/);
+});
+
+test("the card picker gets a config the card accepts", async (t) => {
+  const window = await loadPage(t);
+  const Card = window.customElements.get("bilka-shopping-list-card");
+  const element = window.document.createElement("bilka-shopping-list-card");
+  element.setConfig(Card.getStubConfig());
+  assert.ok(element.shadowRoot);
 });

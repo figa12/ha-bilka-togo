@@ -24,8 +24,9 @@ list with ✕ and undo. Long-press a suggestion to stop suggesting it.
 
 `sections` picks which parts the card shows, always in the same order: `add` (the name and the
 add button), `amount` and `suggestions` (which both need `add`), and `list` (the items, ✕ and
-undo). Leave out `amount` or `suggestions` if you don't use them, or place the card twice to
-put adding and the list in different places:
+undo). Tick them in the card's editor on the dashboard, or write them in YAML. Leave out
+`amount` or `suggestions` if you don't use them, or place the card twice to put adding and the
+list in different places:
 
 ```yaml
 type: custom:bilka-shopping-list-card

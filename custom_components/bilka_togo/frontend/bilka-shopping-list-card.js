@@ -17,6 +17,7 @@ const UNDO_SECONDS = 5;
 const MAX_SUGGESTIONS = 10;
 const LONG_PRESS_MS = 550;
 const SECTIONS = ["add", "amount", "suggestions", "list"];
+const DEFAULT_ENTITY = "todo.bilka_to_go_shopping_list";
 
 const TEXT = {
   da: {
@@ -30,6 +31,7 @@ const TEXT = {
     forgetQuestion: (name) => `Glem «${name}» som forslag?`,
     forget: "Glem",
     cancel: "Annuller",
+    sections: { add: "Tilføj vare", amount: "Mængde", suggestions: "Forslag", list: "Indkøbsliste" },
   },
   en: {
     name: "Item",
@@ -42,6 +44,7 @@ const TEXT = {
     forgetQuestion: (name) => `Stop suggesting “${name}”?`,
     forget: "Forget",
     cancel: "Cancel",
+    sections: { add: "Add item", amount: "Amount", suggestions: "Suggestions", list: "Shopping list" },
   },
 };
 
@@ -68,10 +71,18 @@ const sameItem = (a, b) =>
   a.split(/\s+/).join(" ").trim().toLowerCase() === b.split(/\s+/).join(" ").trim().toLowerCase();
 
 class BilkaShoppingListCard extends HTMLElement {
+  static getConfigElement() {
+    return document.createElement("bilka-shopping-list-card-editor");
+  }
+
+  static getStubConfig() {
+    return { entity: DEFAULT_ENTITY };
+  }
+
   setConfig(config) {
     const sections = parseSections(config.sections);
     this._config = {
-      entity: "todo.bilka_to_go_shopping_list",
+      entity: DEFAULT_ENTITY,
       // Open the keyboard when the card's pop-up opens (Bubble Card hash), or on load if true.
       autofocus_hash: null,
       language: "da",
@@ -486,12 +497,90 @@ class BilkaShoppingListCard extends HTMLElement {
   }
 }
 
+/*
+ * The card's settings in Home Assistant's card editor: which sections it shows, saved as the same
+ * `sections` a YAML config would hold. Only valid choices can be made: amount and suggestions
+ * need add, and the last part left stays.
+ */
+class BilkaShoppingListCardEditor extends HTMLElement {
+  setConfig(config) {
+    this._sections = parseSections(config.sections);
+    this._config = config;
+    const language = TEXT[config.language] ? config.language : "da";
+    if (!this.shadowRoot || this._language !== language) this._build(language);
+    this._show();
+  }
+
+  _build(language) {
+    this._language = language;
+    const root = this.shadowRoot || this.attachShadow({ mode: "open" });
+    root.innerHTML = `
+      <style>
+        :host { display: block; color: var(--primary-text-color); }
+        label { display: flex; align-items: center; gap: 12px; min-height: 48px; cursor: pointer; }
+        input { width: 20px; height: 20px; margin: 0; accent-color: var(--primary-color); }
+        label.locked { color: var(--disabled-text-color, var(--secondary-text-color)); cursor: default; }
+      </style>
+    `;
+    this._boxes = {};
+    for (const section of SECTIONS) {
+      const label = document.createElement("label");
+      const box = document.createElement("input");
+      box.type = "checkbox";
+      box.name = section;
+      box.addEventListener("change", () => this._changed(section, box.checked));
+      label.append(box, TEXT[language].sections[section]);
+      root.append(label);
+      this._boxes[section] = box;
+    }
+  }
+
+  _show() {
+    const has = (section) => this._sections.has(section);
+    const locked = {
+      add: !has("list"),
+      amount: !has("add"),
+      suggestions: !has("add"),
+      list: !has("add"),
+    };
+    for (const section of SECTIONS) {
+      const box = this._boxes[section];
+      box.checked = has(section);
+      box.disabled = locked[section];
+      box.parentElement.classList.toggle("locked", locked[section]);
+    }
+  }
+
+  _changed(section, shown) {
+    const sections = new Set(this._sections);
+    if (shown) {
+      sections.add(section);
+    } else {
+      sections.delete(section);
+      if (section === "add") {
+        sections.delete("amount");
+        sections.delete("suggestions");
+      }
+    }
+    const { sections: _, ...config } = this._config;
+    // Everything shown is the default, and needs nothing in the card's config.
+    if (sections.size < SECTIONS.length) config.sections = SECTIONS.filter((s) => sections.has(s));
+    this._sections = sections;
+    this._config = config;
+    this._show();
+    const event = new Event("config-changed", { bubbles: true, composed: true });
+    event.detail = { config };
+    this.dispatchEvent(event);
+  }
+}
+
 // Home Assistant's own script swaps in another custom element registry when it runs (a polyfill
 // for scoped registries), and this module can run before it does. A card defined in the
 // browser's registry then is invisible to Home Assistant, which waits for it forever and shows
 // a bare "Configuration error". So define once Home Assistant's own element exists, in
 // whichever registry is current by then.
 customElements.whenDefined("home-assistant").then(() => {
+  if (!customElements.get("bilka-shopping-list-card-editor")) customElements.define("bilka-shopping-list-card-editor", BilkaShoppingListCardEditor);
   if (!customElements.get("bilka-shopping-list-card")) customElements.define("bilka-shopping-list-card", BilkaShoppingListCard);
 });
 window.customCards = window.customCards || [];
