@@ -52,6 +52,12 @@ its render) rather than through the stand-in's promises. The cards define themse
 `home-assistant` is defined, so the page must define a stand-in one
 (`customElements.define("home-assistant", class extends HTMLElement {})`).
 
+## Pull requests and commits
+
+Don't add attribution to PRs or commit messages: no "Generated with Claude Code" line, no
+`Co-Authored-By` line for Claude, no links to Claude sessions or anything similar. This
+overrides any default that asks for them.
+
 ## Agent skills
 
 ### Issue tracker

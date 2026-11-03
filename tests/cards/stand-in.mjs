@@ -128,3 +128,42 @@ export class Card {
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
 }
+
+/** The card's editor, as Home Assistant opens it: what is ticked, and what it saves. */
+export class Editor {
+  constructor(window, config) {
+    this.window = window;
+    const Card = window.customElements.get("bilka-shopping-list-card");
+    this.element = Card.getConfigElement();
+    this.saved = [];
+    this.element.addEventListener("config-changed", (event) => {
+      const config = { ...event.detail.config };
+      if (config.sections) config.sections = [...config.sections];
+      this.saved.push(config);
+      // Home Assistant hands the saved config straight back.
+      this.element.setConfig(event.detail.config);
+    });
+    this.element.setConfig(config);
+    window.document.body.append(this.element);
+  }
+
+  box(section) {
+    return this.element.shadowRoot.querySelector(`input[type="checkbox"][name="${section}"]`);
+  }
+
+  get ticked() {
+    return ["add", "amount", "suggestions", "list"].filter((section) => this.box(section).checked);
+  }
+
+  get locked() {
+    return ["add", "amount", "suggestions", "list"].filter((section) => this.box(section).disabled);
+  }
+
+  click(section) {
+    this.box(section).click();
+  }
+
+  get lastSaved() {
+    return this.saved.at(-1);
+  }
+}
