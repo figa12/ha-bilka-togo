@@ -79,8 +79,9 @@ class BilkaShoppingListCard extends HTMLElement {
     };
     this._sections = sections;
     this._t = TEXT[this._config.language] || TEXT.da;
-    this._items = [];
-    this._known = [];
+    // Home Assistant can call this again on a card already on the page: keep what it has loaded.
+    this._items ??= [];
+    this._known ??= [];
     if (!this.shadowRoot) this._build();
     this._showSections();
   }

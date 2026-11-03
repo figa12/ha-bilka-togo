@@ -191,3 +191,13 @@ test("a card placed before it gets hass still follows the list", async (t) => {
   await settle();
   assert.equal(hass.live.length, 1);
 });
+
+test("reconfiguring a card on the page keeps its list and suggestions", async (t) => {
+  const { card, hass } = await cardWith(t, ["add", "suggestions"], { items: ["mælk", "ris"], known: ["pasta"] });
+  card.element.setConfig({ ...ENTITY, sections: ["add", "suggestions", "list"] });
+  assert.equal(card.element.getCardSize(), 4);
+  card.type("p");
+  assert.deepEqual(card.suggestions.map((chip) => chip.textContent), ["pasta"]);
+  hass.emit();
+  assert.deepEqual(card.rows, ["mælk", "ris"]);
+});
