@@ -1,3 +1,5 @@
+[![ha-bilka-togo](/BilkaBanner.jpg)]([https://gaggiuino.github.io/#/](https://github.com/figa12/ha-bilka-togo))
+
 # Bilka To Go for Home Assistant
 
 A household shopping list in Home Assistant that feeds [Bilka To Go](https://www.bilkatogo.dk)
